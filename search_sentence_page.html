@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="'UTF-8">
+    <meta http-equiv="'X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,
+    initial-scale=1.0">
+    <meta proterty="og:site_name" contnet="why 안보여">
+    <title>똥망똥망</title>
+    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+
+</head>
+<body>
+    <h2>제발 되라 plz : </h2>
+    <button type="button" id="btn_data" style="WIDTH: 80pt; HEIGHT: 20pt">눌러</button>    
+    <input type="text" id="url11" placeholder="URL" style="WIDTH: 100pt; HEIGHT: 15pt">
+    <input type="text" id="search" placeholder="검색어" style="WIDTH: 100pt; HEIGHT: 15pt">
+   
+    <p>&nbsp;</p>
+    <!-- data에 new 한 html 출력 -->
+    <div id="data"></div>
+
+    <script></script>
+    <script>
+        
+        var output;
+        var url1;
+        var search_word;
+        
+        $("#btn_data").click(function(){
+            // 버튼을 클릭하면 url11랑 search_word에 각각 url이랑 검색어 가져오기
+            url1 = $('#url11').val();
+            search_word=$('#search').val();
+            
+            // load_ajax에선 url을 통해서 화면에 띄울 새로운 검색어 문장 html 생성해서 띄워준다.
+            load_ajax();
+        });
+        
+        // 가장 중요한 함수!!
+        function load_ajax() {
+
+            try{
+                $.ajax({
+                    type: 'get',
+                    url:"https://proxyformiribo.herokuapp.com/"+url1,
+                    async: true,
+                    success: function(result){
+
+                        console.log("[requestPostBodyJson] : [result] : 성공"+result.status);
+                        output=result;
+
+                        // 성공하면 검색어 문장 html을 생성해준다. 
+                        find_search_word();
+                                    
+                    },
+                    error : function(e){
+                        alert(e.responseText)
+                        console.log(e);
+                        console.log("[requestPostBodyJson] : [error] : 망할 실패");    				
+                    },
+                    complete : function(data, textStatus){
+                        console.log("[requestPostBodyJson] : [complete] : 완료~");
+                    }
+                });
+            } catch (e){
+                console.log(e.message);
+            }
+        }
+        
+        // 가져온 html 안에 검색어가 있는지 확인쓰
+        function find_search_word(){
+
+            
+            console.log(search_word);
+
+            let parser=new DOMParser();
+            const doc=parser.parseFromString(output, 'text/html');
+            //console.log(doc);
+            
+            // text를 포함한 태그 찾기
+            text_tags='p, span, br, h1, h2, h3, h4, strong, em, blockquote, code, li';
+            text_container=doc.querySelectorAll(text_tags);
+            //console.log(text_container)
+            
+            // innerText =="" 인거 빼기
+            inner_container=[];
+            for (var i=0; i<text_container.length; i++){
+                if (text_container[i].innerText!=""){
+                    inner_container.push(text_container[i]);
+                }
+            }
+            //console.log(inner_container);
+            
+            // match 되는 element 요소들 찾기
+            match_element=[]
+            try{
+                for (var i=0; i<inner_container.length; i++){
+                    if (inner_container[i].innerText.toLowerCase().includes(search_word.toLowerCase())){
+                        console.log(i);
+                    
+                        //new_html=use_sentence_original_html(inner_container[i]);
+                        new_html=make_new_sentence_html(inner_container[i]);
+                        match_element.push(new_html+'<br>');
+                    }
+                }
+            } catch{
+                console.log('Error in matching for oop')
+            }
+            match_element.push('<span style="background-color: #FFFF00"></span>');
+            //console.log(match_element);
+            $("#data").html(match_element);
+            //console.log(output)
+
+        }
+        
+        // 웹사이트의 html 속성 그대로 가져와서 쓰기 -가끔 관종 html 엄청 거슬림
+        function use_sentence_original_html(i_container){
+            match_html=i_container.innerHTML;
+            
+            var english=/^[A-Za-z0-9]*$/;
+            if (english.test(search_word)){     // 검색어가 영어면 일케 처리 - 대소문자 달라도 강조처리 해줘야하니까
+                reg=new RegExp(search_word, 'gi');
+                console.log(reg);
+                new_html=match_html.replace(reg, function(str){
+                return "<mark>"+str+"</mark>"    // 여기서 강조처리- 다른 강조로 바꾸기 가능
+            });
+            }
+            else{ // 검색어가 한국어이면 대소문자 노상관
+                highlight_mark="<mark>"+search_word+"</mark>";  // 여기서 강조처리- 다른 강조로 바꾸기 가능
+                new_html=match_html.replace(search_word, highlight_mark)
+            }
+            return new_html
+        }
+
+        // 긁어온 검색어 문장 텍스트로 html 재구성
+        function make_new_sentence_html(i_container){
+            match_sentence=i_container.innerText;
+        
+            var english=/^[A-Za-z0-9]*$/;
+            if (english.test(search_word)){     // 영어 검색어
+                reg=new RegExp(search_word, 'gi');
+                console.log(reg);
+                new_html=match_sentence.replace(reg, function(str){
+                return "<b>"+str+"</b>"     // 여기서 강조처리- 다른 강조로 바꾸기 가능
+                });
+                new_html=new_html;
+            }
+            else{   // 한국어 검색어
+                highlight_mark="<b>"+search_word+"</b>";    // 여기서 강조처리- 다른 강조로 바꾸기 가능
+                new_html=match_html.replace(search_word, highlight_mark)
+            }
+            return new_html
+        }
+
+        // 쓸데는 없지만 일단 언젠간 사용할 수도 있는 함수
+        function loadURL(){
+            var url="https://stackoverflow.com/questions/51861577/python-list-function-or-list-comprehension";
+
+            var xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+            xmlhttp.open("GET", url.value, "false");
+            xmlhttp.send();
+            document.all.output.innerText=xmlhttmp.responseText;
+            alert(xmlhttmp.responseText);
+        }
+        function loading(){
+            sel=document.getElementById("site");
+            window.location="https://naver.com";
+        }
+
+    </script>
+</body>
+</html>
