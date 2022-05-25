@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="'UTF-8">
+    <meta http-equiv="'X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,
+    initial-scale=1.0">
+    <meta proterty="og:site_name" content="why 안보여">
+    <title>dongdong</title>
+    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+
+</head>
+<body>
+    <h2>Connecting with Server page</h2>
+
+    <script>
+        var postdata = {
+            'url':url,
+            'option1':option1,
+            'option2':option2
+        }
+
+        //outputs - if output get in here done! =====  THIS IS OUTPUT DATA
+        var keywords;
+        var summary;
+
+
+        $.ajax({
+            type: 'POST',
+            url:'http://127.0.0.1:5000/ajax',
+            async: true,
+            data: JSON.stringify(postdata),
+            dataType : 'JSON',
+            contentType: "application/json",
+            headers : {
+                'Access-Control-Allow-Origin' : '*'
+            },
+            success: function(data){
+
+                console.log("[requestPostBodyJson] : [result] : Success !!: "+data.status);
+                console.log('option1 : ' + data.option1)
+                console.log('option2 : ' + data.option2)
+
+                var json_data=JSON.parse(data);
+                console.log(json_data)
+
+                keywords=data.option1;
+                summary=data.option2;
+
+                if(setOption==1){
+                    return keywords;
+                }
+                else if (setOption==2){
+                    return summary;
+                }
+            },
+            error : function(error){
+                //alert(error.responseText)
+                console.log(error);
+                console.log("[requestPostBodyJson] : [error] : Failed Sorry");    				
+            },
+            complete : function(data, textStatus){
+                console.log("[requestPostBodyJson] : [complete] : Done anyway");
+            }
+            
+        });
+    </script>
+</body>
+
