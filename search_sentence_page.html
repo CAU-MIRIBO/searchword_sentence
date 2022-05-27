@@ -18,24 +18,53 @@
     <div id="data1"></div>
     <div id="data2"></div>
 
+    <style>
+        #search_word_area{
+            background-color:#fdf8f3 ;
+            color: black;
+            padding: 1em;
+            border-radius: 7px;
+            border: none;
+            outline: none;
+            font-family: sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 1.4;
+            width: 95%;
+            height: 100px;
+            overflow: auto;
+        }
+    </style>
+    <div id="search_word_area"></div>
+    <br>
+    <!-- box-shadow: 10px 5px 5px #FDF2E9; -->
+    <iframe 
+        id="whole_preview_frame"
+        src=""
+        height="500"
+        width=100% ></iframe>
 
     <script>
         
-        var output;     // default html output
+       // var output;     // default html output
         var url1;       // url
         var search_word;    //search_word
+        var stopwords=['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', "you're", "you've", "you'll", "you'd", 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', "she's", 'her', 'hers', 'herself', 'it', "it's", 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', "that'll", 'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', "don't", 'should', "should've", 'now', 'd', 'll', 'm', 'o', 're', 've', 'y', 'ain', 'aren', "aren't", 'couldn', "couldn't", 'didn', "didn't", 'doesn', "doesn't", 'hadn', "hadn't", 'hasn', "hasn't", 'haven', "haven't", 'isn', "isn't", 'ma', 'mightn', "mightn't", 'mustn', "mustn't", 'needn', "needn't", 'shan', "shan't", 'shouldn', "shouldn't", 'wasn', "wasn't", 'weren', "weren't", 'won', "won't", 'wouldn', "wouldn't"]
         
         $("#btn_data").click(function(){
-            // 버튼을 클릭하면 url11랑 search_word에 각각 url이랑 검색어 가져오기
+            // if button click get url11 and search_word
             url1 = $('#url11').val();
             search_word=$('#search').val();
             
-            // load_ajax에선 url을 통해서 화면에 띄울 새로운 검색어 문장 html 생성해서 띄워준다.
-            load_ajax();
+            // load_ajax: input url & search word ==> output html
+            // how to use >> arg1 = search_word paragraph ( 0 => X, 1 => combine word, 2 => split word)
+            //            >> arg2 = entire webpage preview( 0 => X, 1 => show preview)
+            load_ajax(2, 1);
+
 
         });        
         // 가장 중요한 함수!!
-        function load_ajax() {
+        function load_ajax(cmd1, cmd2) {
 
             try{
                 $.ajax({
@@ -47,44 +76,55 @@
                         
                         console.log("[requestPostBodyJson] : [result] : Success");
                         output=result;
-                        if (!!search_word){
-                            //output 1: show keyword paragraph
-                            var search_sen=find_search_word();
-                            try{
-                                $("#data1").html(search_sen);
-                            }catch{
-                                console.log('search word display error catch')
+                        
+                        if(cmd1==1 || cmd1==2){
+                            //output 1: show keyword paragraph ==========================
+                            if (!!search_word){
+                                var search_sen=find_search_word(cmd1, output);
+                                try{
+                                    $("#search_word_area").html(search_sen);
+                                }catch{
+                                    console.log('search word display error catch')
+                                }
+                                search_word='';
                             }
-                            search_word='';
-                        }
-                         
-                        var display_html;
-                        //case 1 - stackoverflow 
-                        if(url1.includes('stackoverflow.com/questions/')){
-                            var display_html=stackoverflow_filtering();
-                        }
-                        //case 2 - quora
-                        else if(url1.includes('https://www.quora.com/')){
-                            quora_filtering()
-                        }
-                         //case 3 - all case
-                        else{
-                            //just use output
-                            display_html=output;
-                        }
-                        try{
-                            $("#data2").html(display_html);
-                        }catch{
-                            console.log('all display error catch')
                         }
                         
-                       
+                        if(cmd2==1){
+                            // output 2 : show entire webpage preview
+                            var display_html;
 
+                            //case 1 - stackoverflow 
+                            if(url1.includes('stackoverflow.com/questions/')){
+                                var display_html=stackoverflow_filtering(output);
+                            }
+                            //case 2 - quora
+                            else if(url1.includes('https://www.quora.com/')){
+                                //quora_filtering()
+                                display_html=show_page()
+                            }
+                            //case 3 - all case
+                            else{
+                                //just use output
+                                //display_html=output;
+                                display_html=show_page()
+                                
+                            }
+
+                            try{
+                                $("#whole_preview_frame").attr('srcdoc', display_html.outerHTML);
+                                //$("#data").html(display_html)
+                            }catch{
+                                console.log('all display error catch')
+                            }
+                        }
+                      
                     },
                     error : function(e){
                         //alert(e.responseText)
                         console.log(e);
-                        console.log("[requestPostBodyJson] : [error] : Fail >> "+e.statusText);    				
+                        console.log("[requestPostBodyJson] : [error] : Fail >> "+e.statusText);  
+                        $("#whole_preview_frame").attr('src', url1);  				
                     },
                     complete : function(data, textStatus){
                         console.log("[requestPostBodyJson] : [complete]");
@@ -96,11 +136,16 @@
         }
 
         // stackoverflow page special treatment
-        function stackoverflow_filtering(){
+        function stackoverflow_filtering(output){
 
             let parser=new DOMParser();
             const doc=parser.parseFromString(output, 'text/html');
-           
+
+            header_container=doc.getElementsByTagName('header');
+            while(header_container.length>0){
+                header_container[0].parentNode.removeChild(header_container[0])
+            }
+
             cookie_container=doc.getElementsByClassName('ff-sans ps-fixed z-nav-fixed ws4 sm:w-auto p32 sm:p16 bg-black-750 fc-white bar-lg b16 l16 r16 js-consent-banner');
             while(cookie_container.length>0){
                 cookie_container[0].parentNode.removeChild(cookie_container[0])
@@ -127,97 +172,151 @@
             
         }
 
-        // default
+        // show whole preview
         function show_page(){
-            //let parser=new DOMParser();
-            //const doc=parser.parseFromString(output, 'text/html');
-
-            //text_tags='body';
-            //text_container=doc.querySelectorAll(text_tags);
-            //text_container=doc.getElementsId("root");
-            //console.log(text_container);
-            //text_html=text_container[0].innerHTML;
-            //console.log(text_html);
-            
-            //console.log(text_container.documentElement);
-
-            //mainpage=text_container.getElementsByClassName('q-text qu-dynamicFontSize--regular qu-display--flex qu-px--large qu-pb--large qu-flexDirection--row PageContentsLayout___StyledText-d2uxks-0 ioqSAj');
-            //console.log(mainpage)
-            try{
-                $("#data2").html(output);
-            }catch{
-                console.log('display error catch')
-            }
-            return output;
-            
-        }
-
-        
-        
-        // 가져온 html 안에 검색어가 있는지 확인쓰
-        function find_search_word(){
-
-            
-            console.log(search_word);
-            const words=search_word.split(' ');
-
             let parser=new DOMParser();
             const doc=parser.parseFromString(output, 'text/html');
             
-            // text를 포함한 태그 찾기
+            // find all tag with text
+            text_tags='html';
+            text_container=doc.querySelectorAll(text_tags);
+
+            header_container=doc.getElementsByTagName('header');
+            while(header_container.length>0){
+                header_container[0].parentNode.removeChild(header_container[0])
+            }
+            show_html=doc.documentElement;
+
+            return show_html;
+
+        }
+        // check if there are searchwords in crawled html
+        function find_search_word(word_option, output){
+
+            
+            console.log(search_word);
+        
+            let parser=new DOMParser();
+            const doc=parser.parseFromString(output, 'text/html');
+            
+            // find all tag with text
             text_tags='br, p, span, h1, h2, h3, h4, strong, em, blockquote, code, li';
             text_container=doc.querySelectorAll(text_tags);
             
-            // innerText =="" 인거 빼기
+            // innerText =="" remove
             inner_container=[];
             for (var i=0; i<text_container.length; i++){
                 if (text_container[i].innerText!=""){
-                    inner_container.push(text_container[i]);
+                        inner_container.push(text_container[i]);
                 }
             }
 
-            // match 되는 element 요소들 찾기
+            // find all matching elements
             match_element=[]
-            //try{
-                for (var i=0; i<inner_container.length; i++){
-                    for (var j=0; j<words.length; j++){
-                        if (inner_container[i].innerText.toLowerCase().includes(words[j].toLowerCase())){
-
-                            new_html=use_sentence_original_html(inner_container[i], words[j]);
-                            //new_html=make_new_sentence_html(inner_container[i], words[j]);
-                            
-                            match_element.push(new_html+'<br>');
-                        }
-                    }
-                }
-            //} catch{
-                //console.log('Error in matching for oop')
-            //}
-            match_element.push('mark { background-color: red; }');
+            if(word_option==1){
+                //try{
+                    match_element=word_option1(inner_container)
+                //} catch{
+                    //console.log('Error in matching for oop')
+                //}
+            }
+            else if(word_option==2){
+                //try{
+                    match_element=word_option2(inner_container)
+                //} catch{
+                    //console.log('Error in matching for oop')
+                //}
+            }
+            else{
+                console.log("Wrong Search Word Sentence Option : should be 1 or 2")
+            }
+            
+            //match_element.push('mark { background-color: red; }');
             //<span style="background-color: #DAA"></span>
+
             return match_element
        }
+       
+       // don't split search word option
+        function word_option1(inner_container){
+            temp_container=[]
+            for (var i=0; i<inner_container.length; i++){
+                if (inner_container[i].innerText.toLowerCase().includes(search_word.toLowerCase())){
+
+                    if(inner_container[i].innerHTML.includes('href')){
+                        continue;
+                    }
+                    if(temp_container.includes(inner_container[i].innerText)){
+                        continue;
+                    }
+                    new_html=use_sentence_original_html(inner_container[i], search_word);
+                    //new_html=make_new_sentence_html(inner_container[i], search_word);
+                    
+                    temp_container.push(inner_container[i].innerText);
+                    match_element.push(new_html+'<br>');
+                }
+            }
+            return match_element
+        }
         
-        // 웹사이트의 html 속성 그대로 가져와서 쓰기 -가끔 관종 html 엄청 거슬림
+        //  split search word option
+        function word_option2(inner_container){
+            const split_words=search_word.split(' ');
+            var words=[]
+            temp_container=[]
+
+            for(var i=0; i<split_words.length; i++){
+                if (stopwords.includes(split_words[i].toLowerCase())){
+                    continue;
+                }
+                words.push(split_words[i])
+                
+            }
+            console.log(words)
+
+            for (var i=0; i<inner_container.length; i++){
+                for (var j=0; j<words.length; j++){
+                    if (inner_container[i].innerText.toLowerCase().includes(words[j].toLowerCase())){
+
+                        if(inner_container[i].innerHTML.includes('href')){
+                            continue;
+                        }
+                        if(temp_container.includes(inner_container[i].innerText)){
+                            console.log()
+                            continue;
+                        }
+                        new_html=use_sentence_original_html(inner_container[i], words[j]);
+                        //new_html=make_new_sentence_html(inner_container[i], words[j]);
+                        
+                        temp_container.push(inner_container[i].innerText);
+                        match_element.push(new_html+'<br>');
+                    }
+                }
+            }
+            return match_element
+        }
+        
+        // use webpage's original html src - GwanJong html problem
         function use_sentence_original_html(i_container, word1){
             match_html=i_container.innerHTML;
+            var bcolor="#FDC2B0"
             
             var english=/^[A-Za-z0-9]*$/;
             if (english.test(word1)){     // 검색어가 영어면 일케 처리 - 대소문자 달라도 강조처리 해줘야하니까
                 reg=new RegExp(word1, 'gi');
                 //console.log(reg);
                 new_html=match_html.replace(reg, function(str){
-                return "<mark style=\"background-color:#FAE5D3\">"+str+"</mark>"    // 여기서 강조처리- 다른 강조로 바꾸기 가능
+                return "<mark style=\"background-color:"+bcolor+"\">"+str+"</mark>"    // 여기서 강조처리- 다른 강조로 바꾸기 가능
             });
             }
             else{ // 검색어가 한국어이면 대소문자 노상관
-                highlight_mark="<mark style=\"background-color:#FAE5D3\">"+word1+"</mark>";  // 여기서 강조처리- 다른 강조로 바꾸기 가능
+                highlight_mark="<mark style=\"background-color:"+bcolor+"\">"+word1+"</mark>";  // 여기서 강조처리- 다른 강조로 바꾸기 가능
                 new_html=match_html.replace(word1, highlight_mark)
             }
             return new_html
         }
 
-        // 긁어온 검색어 문장 텍스트로 html 재구성
+        // html reconstrucntion with bold font
         function make_new_sentence_html(i_container, word2){
             match_html=i_container.innerText;
         
@@ -237,7 +336,7 @@
             return new_html
         }
 
-        // 쓸데는 없지만 일단 언젠간 사용할 수도 있는 함수
+        // useless but will be used somehow
         function loadURL(){
             var url="https://stackoverflow.com/questions/51861577/python-list-function-or-list-comprehension";
 
