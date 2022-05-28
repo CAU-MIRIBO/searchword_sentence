@@ -12,12 +12,8 @@
     <input type="text" id="url11" placeholder="URL" style="WIDTH: 100pt; HEIGHT: 15pt">
     <br>
     <input type="text" id="search" placeholder="검색어" style="WIDTH: 100pt; HEIGHT: 15pt">
-   
-    <p>&nbsp;</p>
+    <br>
     <!-- data에 new 한 html 출력 -->
-    <div id="data1"></div>
-    <div id="data2"></div>
-
     <style>
         #search_word_area{
             background-color:#fdf8f3 ;
@@ -30,24 +26,21 @@
             font-size: 12px;
             font-weight: 500;
             line-height: 1.4;
-            width: 95%;
-            height: 100px;
+            width: 100%;
+            height: 13px;
             overflow: auto;
+            transition: all 0.1s;
         }
     </style>
-    <div id="search_word_area"></div>
+    <div id="search_word_area">검색어를 포함한 문장</div>
     <br>
-    <!-- box-shadow: 10px 5px 5px #FDF2E9; -->
-    <iframe 
-        id="whole_preview_frame"
-        src=""
-        height="500"
-        width=100% ></iframe>
+    <iframe id="whole_preview_frame" src="" height="13px" width=100% padding="1em"
+        frameBorder="0" sandbox="allow-scripts">전체 미리보기</iframe>
 
     <script>
         
        // var output;     // default html output
-        var url1;       // url
+        var url1;              // url
         var search_word;    //search_word
         var stopwords=['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', "you're", "you've", "you'll", "you'd", 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', "she's", 'her', 'hers', 'herself', 'it', "it's", 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', "that'll", 'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', "don't", 'should', "should've", 'now', 'd', 'll', 'm', 'o', 're', 've', 'y', 'ain', 'aren', "aren't", 'couldn', "couldn't", 'didn', "didn't", 'doesn', "doesn't", 'hadn', "hadn't", 'hasn', "hasn't", 'haven', "haven't", 'isn', "isn't", 'ma', 'mightn', "mightn't", 'mustn', "mustn't", 'needn', "needn't", 'shan', "shan't", 'shouldn', "shouldn't", 'wasn', "wasn't", 'weren', "weren't", 'won', "won't", 'wouldn', "wouldn't"]
         
@@ -58,7 +51,7 @@
             
             // load_ajax: input url & search word ==> output html
             // how to use >> arg1 = search_word paragraph ( 0 => X, 1 => combine word, 2 => split word)
-            //            >> arg2 = entire webpage preview( 0 => X, 1 => show preview)
+                       // >> arg2 = entire webpage preview( 0 => X, 1 => show preview)
             load_ajax(2, 1);
 
 
@@ -78,10 +71,11 @@
                         output=result;
                         
                         if(cmd1==1 || cmd1==2){
-                            //output 1: show keyword paragraph ==========================
+                            //output 1: show keyword paragraph =====================================
                             if (!!search_word){
                                 var search_sen=find_search_word(cmd1, output);
                                 try{
+                                    $('#search_word_area').css('height', '100')
                                     $("#search_word_area").html(search_sen);
                                 }catch{
                                     console.log('search word display error catch')
@@ -91,12 +85,13 @@
                         }
                         
                         if(cmd2==1){
-                            // output 2 : show entire webpage preview
+                            // output 2 : show entire webpage preview================================
                             var display_html;
 
                             //case 1 - stackoverflow 
                             if(url1.includes('stackoverflow.com/questions/')){
-                                var display_html=stackoverflow_filtering(output);
+                                $("#whole_preview_frame").css('sandbox' , 'allow-same-origin')
+                                display_html=stackoverflow_filtering(output);
                             }
                             //case 2 - quora
                             else if(url1.includes('https://www.quora.com/')){
@@ -106,14 +101,14 @@
                             //case 3 - all case
                             else{
                                 //just use output
-                                //display_html=output;
+                               // display_html=output;
                                 display_html=show_page()
                                 
                             }
 
                             try{
-                                $("#whole_preview_frame").attr('srcdoc', display_html.outerHTML);
-                                //$("#data").html(display_html)
+                                //$("#whole_preview_frame").attr('srcdoc', display_html.outerHTML);
+                                display_preview_on_screen(1, display_html, url1)
                             }catch{
                                 console.log('all display error catch')
                             }
@@ -131,44 +126,74 @@
                     }
                 });
             } catch (e){
-                console.log(e.message);
+                console.log("[Weird Error : OMG No~ ]: "+e.message);
             }
         }
 
-        // stackoverflow page special treatment
+        // display on screen
+        function display_preview_on_screen(option, display_html, url){
+            $("#whole_preview_frame").css('height', '400')
+            if(url.includes("stackoverflow")){
+                try{
+                    $("#whole_preview_frame").attr('srcdoc', display_html.outerHTML);
+                    return
+                }catch{
+                    console.log('cannot display with 2')
+                }
+            }
+            try{
+                $("#whole_preview_frame").attr('srcdoc', display_html.outerHTML);
+                return
+            } catch {
+               console.log("cannot display with 1")
+            }
+            try{
+                $("#whole_preview_frame").attr('src', url);
+                return
+            }catch{
+                console.log('cannot display with 2')
+            }
+            
+            
+        }
+
+        // stackoverflow page special treatment ===================================================================
         function stackoverflow_filtering(output){
 
             let parser=new DOMParser();
             const doc=parser.parseFromString(output, 'text/html');
 
-            header_container=doc.getElementsByTagName('header');
+            header_container=doc.getElementsByTagName('footer');
             while(header_container.length>0){
-                header_container[0].parentNode.removeChild(header_container[0])
+               header_container[0].parentNode.removeChild(header_container[0])
             }
 
             cookie_container=doc.getElementsByClassName('ff-sans ps-fixed z-nav-fixed ws4 sm:w-auto p32 sm:p16 bg-black-750 fc-white bar-lg b16 l16 r16 js-consent-banner');
             while(cookie_container.length>0){
                 cookie_container[0].parentNode.removeChild(cookie_container[0])
             }
-            header_container=doc.getElementsByClassName('s-topbar ps-fixed t0 l0 js-top-bar');
-            while(header_container.length>0){
-                header_container[0].parentNode.removeChild(header_container[0])
-            }
+            //header_container=doc.getElementsByClassName('s-topbar ps-fixed t0 l0 js-top-bar');
+            //while(header_container.length>0){
+            //    header_container[0].parentNode.removeChild(header_container[0])
+            //}
             survey_container=doc.getElementsByClassName('d-flex jc-space-between wmx12 mx-auto px16 py8');
             while(survey_container.length>0){
                 survey_container[0].parentNode.removeChild(survey_container[0])
             }
 
             filtered_html=doc.documentElement;
-
-            //$("#data2").html(filtered_html);
-            
             return filtered_html; 
         }
 
         // Quora ㅈ망 어쩌지.. 안되는디...
         function quora_filtering(){
             window.location.href=url1;
+            const iframe=document.getElementById('whole_preview_frame');
+            const iframeWindowElement=iframe.contentWindow;
+
+            var injectedScript=iframeWindowElement.document.createElement('script')
+            injectedScript.append()
+            iframeWindowElement.document.documentElement.appendChild(script);
             
         }
 
@@ -181,7 +206,7 @@
             text_tags='html';
             text_container=doc.querySelectorAll(text_tags);
 
-            header_container=doc.getElementsByTagName('header');
+            header_container=doc.getElementsByTagName('footer');
             while(header_container.length>0){
                 header_container[0].parentNode.removeChild(header_container[0])
             }
@@ -190,11 +215,12 @@
             return show_html;
 
         }
-        // check if there are searchwords in crawled html
+        
+        // check if there are searchwords in crawled html ================================================================
         function find_search_word(word_option, output){
 
             
-            console.log(search_word);
+            //console.log(search_word);
         
             let parser=new DOMParser();
             const doc=parser.parseFromString(output, 'text/html');
@@ -282,7 +308,6 @@
                             continue;
                         }
                         if(temp_container.includes(inner_container[i].innerText)){
-                            console.log()
                             continue;
                         }
                         new_html=use_sentence_original_html(inner_container[i], words[j]);
