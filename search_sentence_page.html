@@ -13,7 +13,10 @@
     <br>
     <input type="text" id="search" placeholder="검색어" style="WIDTH: 100pt; HEIGHT: 15pt">
     <br>
-    <!-- data에 new 한 html 출력 -->
+
+    <!--  여기서 부터 복붙 -->
+
+    <!-- 여기서부터 검색어 문장 관련 css 삽입한 곳 -->
     <style>
         #search_word_area{
             background-color:#fdf8f3 ;
@@ -32,15 +35,19 @@
             transition: all 0.1s;
         }
     </style>
-    <div id="search_word_area">검색어를 포함한 문장</div>
-    <br>
-    <iframe id="whole_preview_frame" src="" height="13px" width=100% padding="1em"
-        frameBorder="0" sandbox="allow-scripts">전체 미리보기</iframe>
 
+    <div id="search_word_area">검색어를 포함한 문장</div>
+    <!-- 검색어 문장 여기까지  -->
+
+    <br>
+
+    <!-- 전체미리보기 출력부 -->
+    <iframe id="whole_preview_frame" src="" height="13px" width=100% padding="1em"
+        frameBorder="0" sandbox="allow-scripts allow-pointer-lock">전체 미리보기</iframe>
+    <!-- 전체 미리보기 여기까지-->
     <script>
-        
-       // var output;     // default html output
-        var url1;              // url
+        var myiframe=document.getElementById("whole_preview_frame");
+        var url1;           // url
         var search_word;    //search_word
         var stopwords=['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', "you're", "you've", "you'll", "you'd", 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', "she's", 'her', 'hers', 'herself', 'it', "it's", 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', "that'll", 'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', "don't", 'should', "should've", 'now', 'd', 'll', 'm', 'o', 're', 've', 'y', 'ain', 'aren', "aren't", 'couldn', "couldn't", 'didn', "didn't", 'doesn', "doesn't", 'hadn', "hadn't", 'hasn', "hasn't", 'haven', "haven't", 'isn', "isn't", 'ma', 'mightn', "mightn't", 'mustn', "mustn't", 'needn', "needn't", 'shan', "shan't", 'shouldn', "shouldn't", 'wasn', "wasn't", 'weren', "weren't", 'won', "won't", 'wouldn', "wouldn't"]
         
@@ -50,18 +57,78 @@
             search_word=$('#search').val();
             
             // load_ajax: input url & search word ==> output html
-            // how to use >> arg1 = search_word paragraph ( 0 => X, 1 => combine word, 2 => split word)
+            // 사용법 >> arg1 = search_word paragraph ( 0 => X, 1 => combine word, 2 => split word)
                        // >> arg2 = entire webpage preview( 0 => X, 1 => show preview)
-            load_ajax(2, 1);
+            try{
+                //load_ajax(2, 1);
+                page_title=get_title(url1)
+                //console.log(page_title)
+            }
+            catch{
+                // 에러 발생
+                console.log('Cannot Load :: DDongMang')
+                logMyError(e);
+                $("#search_word_area").innerText("Page Not Loaded")
+                $("#whole_preview_frame").attr('src', url1);
+            }
+            
 
 
         });        
+        // 제목 구하기
+        function get_title(url){
+            var title='Click Here to Enter Webpage'
+            try{
+                $.ajax({
+                    type: 'get',
+                    url:"https://proxyformiribo.herokuapp.com/"+url1,
+                    async: true,
+                    //data: 'JSONP',
+                    success: function(result){
+                        
+                        console.log("[Get Title Response] : [Success]")
+
+                        let parser=new DOMParser();
+                        const doc=parser.parseFromString(result, 'text/html');
+                        try{
+                            title1=doc.querySelector('meta[property~="og:title"]').content;
+                            if(!title1){
+                                console.log(title1)
+                                return title1;
+                            }
+                        }
+                        catch{
+                            // maybe no og:title
+                        }
+
+                        try{
+                            title2=doc.querySelector('title').innerText;
+                        } catch{
+                            //no title
+                            title2=title
+                        }
+                        
+                        console.log(title2)
+                        return title2
+                      
+                    },
+                    error : function(e){
+                        console.log("[Get Title Resoonse] : [Fail] ");  
+                        return title 				
+                    }
+                });
+            } catch (e){
+                console.log("[Weird Error : OMG No~ ]: "+e.message);
+            }
+
+        }
+        
         // 가장 중요한 함수!!
         function load_ajax(cmd1, cmd2) {
 
             try{
                 $.ajax({
-                    type: 'GET',
+                    type: 'get',
                     url:"https://proxyformiribo.herokuapp.com/"+url1,
                     async: true,
                     //data: 'JSONP',
@@ -75,6 +142,7 @@
                             if (!!search_word){
                                 var search_sen=find_search_word(cmd1, output);
                                 try{
+                                    // <<<<<<<<<<<<<<< 검색어 출력부 >>>>>>>>>>>>>>>>>>
                                     $('#search_word_area').css('height', '100')
                                     $("#search_word_area").html(search_sen);
                                 }catch{
@@ -90,22 +158,13 @@
 
                             //case 1 - stackoverflow 
                             if(url1.includes('stackoverflow.com/questions/')){
-                                $("#whole_preview_frame").css('sandbox' , 'allow-same-origin')
                                 display_html=stackoverflow_filtering(output);
-                            }
-                            //case 2 - quora
-                            else if(url1.includes('https://www.quora.com/')){
-                                //quora_filtering()
-                                display_html=show_page()
                             }
                             //case 3 - all case
                             else{
-                                //just use output
-                               // display_html=output;
                                 display_html=show_page()
-                                
                             }
-
+                            // Display 하는 부분
                             try{
                                 //$("#whole_preview_frame").attr('srcdoc', display_html.outerHTML);
                                 display_preview_on_screen(1, display_html, url1)
@@ -119,7 +178,7 @@
                         //alert(e.responseText)
                         console.log(e);
                         console.log("[requestPostBodyJson] : [error] : Fail >> "+e.statusText);  
-                        $("#whole_preview_frame").attr('src', url1);  				
+                        //$("#whole_preview_frame").attr('src', url1);  				
                     },
                     complete : function(data, textStatus){
                         console.log("[requestPostBodyJson] : [complete]");
@@ -130,31 +189,42 @@
             }
         }
 
-        // display on screen
+        // display on screen <<<<<<<<<<<<<<<< 전체 미리보기 출력부 >>>>>>>>>>>>>>>>>>>>>>>>>
         function display_preview_on_screen(option, display_html, url){
+
+            
             $("#whole_preview_frame").css('height', '400')
             if(url.includes("stackoverflow")){
                 try{
-                    $("#whole_preview_frame").attr('srcdoc', display_html.outerHTML);
+                    $("#whole_preview_frame").css('sandbox' , 'allow-same-origin')
+                    $("#whole_preview_frame").attr('srcdoc', display_html.innerHTML);
+                    return
+                }catch{
+                    console.log('cannot display with 1.')
+                }
+            }
+            else if (url.includes("velog.io") || url.includes('quora.com')){
+                try{
+                    //$("#whole_preview_frame").css('sandbox' , 'allow-same-origin')
+                    $("#whole_preview_frame").attr('src', url);
+                    return
+                }catch{
+                    console.log('cannot display with 2.')
+                }
+            }
+            else{ 
+                try{    // 일단 1번 --> 거의 얘로 돌아가
+                    $("#whole_preview_frame").attr('srcdoc', display_html.innerHTML);
+                } catch {
+                   console.log("cannot display with 1")
+                }
+                try{    // 2번
+                    $("#whole_preview_frame").attr('src', url);
                     return
                 }catch{
                     console.log('cannot display with 2')
                 }
-            }
-            try{
-                $("#whole_preview_frame").attr('srcdoc', display_html.outerHTML);
-                return
-            } catch {
-               console.log("cannot display with 1")
-            }
-            try{
-                $("#whole_preview_frame").attr('src', url);
-                return
-            }catch{
-                console.log('cannot display with 2')
-            }
-            
-            
+            }    
         }
 
         // stackoverflow page special treatment ===================================================================
@@ -187,14 +257,7 @@
 
         // Quora ㅈ망 어쩌지.. 안되는디...
         function quora_filtering(){
-            window.location.href=url1;
-            const iframe=document.getElementById('whole_preview_frame');
-            const iframeWindowElement=iframe.contentWindow;
-
-            var injectedScript=iframeWindowElement.document.createElement('script')
-            injectedScript.append()
-            iframeWindowElement.document.documentElement.appendChild(script);
-            
+            window.location.href=url1;            
         }
 
         // show whole preview
@@ -240,18 +303,18 @@
             // find all matching elements
             match_element=[]
             if(word_option==1){
-                //try{
+                try{
                     match_element=word_option1(inner_container)
-                //} catch{
-                    //console.log('Error in matching for oop')
-                //}
+                } catch{
+                    console.log('Error in matching for searchword op 1')
+                }
             }
             else if(word_option==2){
-                //try{
+                try{
                     match_element=word_option2(inner_container)
-                //} catch{
-                    //console.log('Error in matching for oop')
-                //}
+                } catch{
+                    console.log('Error in matching for searchword op2')
+                }
             }
             else{
                 console.log("Wrong Search Word Sentence Option : should be 1 or 2")
@@ -377,5 +440,8 @@
         }
 
     </script>
+
+
+    <!-- 여기까지 복붗 -->
 </body>
 </html>
