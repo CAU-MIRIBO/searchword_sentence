@@ -60,8 +60,8 @@
             // 사용법 >> arg1 = search_word paragraph ( 0 => X, 1 => combine word, 2 => split word)
                        // >> arg2 = entire webpage preview( 0 => X, 1 => show preview)
             try{
-                //load_ajax(2, 1);
-                page_title=get_title(url1)
+                load_ajax(2, 1);
+                //page_title=get_title(url1)
                 //console.log(page_title)
             }
             catch{
@@ -71,10 +71,7 @@
                 $("#search_word_area").innerText("Page Not Loaded")
                 $("#whole_preview_frame").attr('src', url1);
             }
-            
-
-
-        });        
+        });  
         // 제목 구하기
         function get_title(url){
             var title='Click Here to Enter Webpage'
@@ -172,13 +169,25 @@
                                 console.log('all display error catch')
                             }
                         }
-                      
+                        /*
+                        console.log(search_sen+" >>> 읎어")
+                        if(!search_sen || search_sen.length==0){
+                            search_sen=find_search_word_iframe(cmd1, output);
+                            console.log(search_sen)
+                            try{
+                                // <<<<<<<<<<<<<<< 검색어 출력부 >>>>>>>>>>>>>>>>>>
+                                $('#search_word_area').css('height', '100')
+                                $("#search_word_area").html(search_sen);
+                            }catch{
+                                console.log('search word display error catch2')
+                            }
+                        }*/
                     },
                     error : function(e){
                         //alert(e.responseText)
                         console.log(e);
                         console.log("[requestPostBodyJson] : [error] : Fail >> "+e.statusText);  
-                        //$("#whole_preview_frame").attr('src', url1);  				
+                        $("#whole_preview_frame").attr('src', url1);  				
                     },
                     complete : function(data, textStatus){
                         console.log("[requestPostBodyJson] : [complete]");
@@ -203,9 +212,9 @@
                     console.log('cannot display with 1.')
                 }
             }
-            else if (url.includes("velog.io") || url.includes('quora.com')){
+            else if (bool_website(url)){
                 try{
-                    //$("#whole_preview_frame").css('sandbox' , 'allow-same-origin')
+                    $("#whole_preview_frame").css('sandbox' , 'allow-same-origin')
                     $("#whole_preview_frame").attr('src', url);
                     return
                 }catch{
@@ -219,12 +228,29 @@
                    console.log("cannot display with 1")
                 }
                 try{    // 2번
-                    $("#whole_preview_frame").attr('src', url);
+                     $("#whole_preview_frame").attr('src', url);
                     return
                 }catch{
                     console.log('cannot display with 2')
                 }
             }    
+        }
+        
+        function bool_website(url){
+            tf=(url.includes("velog.io") || url.includes('quora.com') || url.includes('wikipedia') || url.includes('www.w3schools.com')
+            || url.includes('www.khan.co.kr') || url.includes('www.animal.go.kr') || url.includes('http://encykorea') || url.includes('http://www.tcpschool.com/') 
+            || url.includes('http://www.dreamy.pe.') || url.includes('https://programmers.co.kr') || url.includes('https://campustown.seoul.go')
+            || url.includes('https://www.seoul.co.kr') || url.includes('naver.com') || url.includes('wiktionary.org')
+            || url.includes('http://ncov.mohw.go')) 
+            return tf
+        }
+        
+        function find_search_word_iframe(word_option, output){
+            iframe_container=document.getElementById('whole_preview_frame')
+            iframe_d=iframe_container.contentWindow.document
+            console.log(iframe_d)
+            m_element=find_search_word(word_option, iframe_d)
+            return m_element
         }
 
         // stackoverflow page special treatment ===================================================================
@@ -445,3 +471,4 @@
     <!-- 여기까지 복붗 -->
 </body>
 </html>
+
